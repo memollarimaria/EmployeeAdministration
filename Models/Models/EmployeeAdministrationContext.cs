@@ -10,6 +10,18 @@ namespace Entities.Models
 {
 	public class EmployeeAdministrationContext : DbContext
 	{
+		public EmployeeAdministrationContext(DbContextOptions<EmployeeAdministrationContext> options)
+	: base(options)
+		{
+		}
+
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
+			if (!optionsBuilder.IsConfigured)
+			{
+				optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=EmployeeAdministration;Trusted_Connection=True;");
+			}
+		}
 		public DbSet<User> Users { get; set; }
 		public DbSet<UserRole> Roles { get; set; }
 		public DbSet<Project> Projects { get; set; }
@@ -19,6 +31,8 @@ namespace Entities.Models
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			modelBuilder.Entity<UserRole>()
+		   .HasKey(ur => ur.RoleId);
 			modelBuilder.Entity<UserProject>()
 				.HasKey(up => new { up.UserId, up.ProjectId });
 
