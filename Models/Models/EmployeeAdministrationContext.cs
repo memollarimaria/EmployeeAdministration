@@ -23,7 +23,6 @@ namespace Entities.Models
 			}
 		}
 		public DbSet<User> Users { get; set; }
-		public DbSet<UserRole> Roles { get; set; }
 		public DbSet<Project> Projects { get; set; }
 		public DbSet<Task> Tasks { get; set; }
 		public DbSet<UserProject> UserProjects { get; set; }
@@ -31,8 +30,6 @@ namespace Entities.Models
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<UserRole>()
-		   .HasKey(ur => ur.RoleId);
 			modelBuilder.Entity<UserProject>()
 				.HasKey(up => new { up.UserId, up.ProjectId });
 
