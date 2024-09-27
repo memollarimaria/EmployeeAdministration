@@ -16,7 +16,7 @@ namespace Entities.Models
         [Required]
         public string Password { get; set; }
         public Role Role { get; set; }
-		public string PhotoPath { get; set; } = null!;
+		public string? PhotoPath { get; set; } = null!;
 		public byte[]? PhotoContent { get; set; }
 		public ICollection<UserProject> UserProjects { get; set; }
 		public ICollection<UserTask> UserTasks { get; set; }

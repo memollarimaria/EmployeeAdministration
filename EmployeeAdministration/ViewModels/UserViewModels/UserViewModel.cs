@@ -6,8 +6,6 @@ namespace EmployeeAdministration.ViewModels.UserViewModels
 	public class UserViewModel
 	{
 		public string Email { get; set; }
-		[Required]
-		public string Password { get; set; }
 		public ICollection<UserProject> UserProjects { get; set; }
 		public ICollection<UserTask> UserTasks { get; set; }
 	}
