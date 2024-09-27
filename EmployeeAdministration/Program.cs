@@ -24,6 +24,7 @@ builder.Services.AddHttpContextAccessor();
 
 //DI
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<IProject, ProjectService>();
 
 
 builder.Services.AddScoped<Jwt>();

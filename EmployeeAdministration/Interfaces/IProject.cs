@@ -1,14 +1,15 @@
-﻿using Entities.Models;
+﻿using EmployeeAdministration.ViewModels.ProjectsViewModels;
+using Entities.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace EmployeeAdministration.Interfaces
 {
 	public interface IProject
 	{
-		Task<ICollection<Project>> GetUserProjects();
-		Task<ICollection<Project>> GetProjectTasks(Guid projectId);
-		Task CreateProject(Project request);
+		Task<ICollection<ProjectViewModel>> GetUserProjects();
+		Task<ICollection<ProjectViewModel>> GetAllProject();
+		Task CreateProject(CreateProjectViewModel request);
 		Task DeleteProject(Guid projectId);
-		Task UpdateProject(Project request);
+		Task UpdateProject(UpdateProjectViewModel request);
 	}
 }
