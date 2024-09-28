@@ -149,6 +149,39 @@ namespace EmployeeAdministration.Services
 			return taskViewModels;
 		}
 
+		public async System.Threading.Tasks.Task AssignProjectTo(AssignProjectViewModel request)
+		{
+			var project = await _context.Projects
+				.Include(p => p.UserProjects)
+				.FirstOrDefaultAsync(p => p.ProjectId == request.ProjectId);
+
+			if (project == null)
+			{
+				throw new Exception("Project not found.");
+			}
+			var users = await _context.Users
+				.Where(u => request.UserIds.Contains(u.UserId))
+				.ToListAsync();
+
+			if (!users.Any())
+			{
+				throw new Exception("No valid users found for assignment.");
+			}
+
+			foreach (var user in users)
+			{
+				if (!project.UserProjects.Any(up => up.UserId == user.UserId))
+				{
+					project.UserProjects.Add(new UserProject
+					{
+						UserId = user.UserId,
+						ProjectId = project.ProjectId
+					});
+				}
+			}
+			await _context.SaveChangesAsync();
+		}
+
 
 	}
 }

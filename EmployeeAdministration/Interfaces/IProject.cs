@@ -13,5 +13,6 @@ namespace EmployeeAdministration.Interfaces
 		Task DeleteProject(Guid projectId);
 		Task<ICollection<TaskViewModel>> GetProjectTasks(Guid projectId);
 		Task UpdateProject(UpdateProjectViewModel request);
+		Task AssignProjectTo(AssignProjectViewModel request);
 	}
 }

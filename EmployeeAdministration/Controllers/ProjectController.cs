@@ -1,4 +1,5 @@
 ﻿using EmployeeAdministration.Interfaces;
+using EmployeeAdministration.Services;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -75,6 +76,13 @@ namespace EmployeeAdministration.Controllers
 			{
 				return BadRequest(ex.Message);
 			}
+		}
+
+		[HttpPost("assignProjectTo")]
+		public async Task<IActionResult> AssignProjectTo([FromBody] AssignProjectViewModel model)
+		{
+			await _project.AssignProjectTo(model);
+			return Ok("Project assigned successfully.");
 		}
 	}
 }
