@@ -187,6 +187,79 @@ namespace EmployeeAdministration.Services
 			_context.Tasks.Update(task);
 			await _context.SaveChangesAsync();
 		}
+		public async System.Threading.Tasks.Task AssignTaskTo(AssignTaskViewModel request)
+		{
+			var task = await _context.Tasks
+				.Include(t => t.Project)
+				.Include(t => t.UserTasks)
+				.FirstOrDefaultAsync(t => t.TaskId == request.TaskId);
+
+			if (task == null)
+			{
+				throw new Exception("Task not found.");
+			}
+
+			var users = await _context.UserProjects
+				.Where(up => up.ProjectId == task.Project.ProjectId && request.UserIds.Contains(up.UserId))
+				.Select(up => up.User)
+				.ToListAsync();
+
+			if (!users.Any())
+			{
+				throw new Exception("No valid users found for assignment or they are not part of the project.");
+			}
+
+			foreach (var user in users)
+			{
+				if (!task.UserTasks.Any(ut => ut.UserId == user.UserId))
+				{
+					task.UserTasks.Add(new UserTask
+					{
+						UserId = user.UserId,
+						TaskId = task.TaskId
+					});
+				}
+			}
+
+			await _context.SaveChangesAsync();
+		}
+
+		public async System.Threading.Tasks.Task UserAssignTaskTo(AssignTaskViewModel request)
+		{
+			var task = await _context.Tasks
+				.Include(t => t.Project)
+				.Include(t => t.UserTasks)
+				.FirstOrDefaultAsync(t => t.TaskId == request.TaskId);
+
+			if (task == null)
+			{
+				throw new Exception("Task not found.");
+			}
+
+			var employees = await _context.UserProjects
+				.Where(up => up.ProjectId == task.Project.ProjectId && request.UserIds.Contains(up.UserId))
+				.Select(up => up.User)
+				.ToListAsync();
+
+			if (!employees.Any())
+			{
+				throw new Exception("No valid employees found for assignment or they are not part of the project.");
+			}
+
+			foreach (var employee in employees)
+			{
+				if (!task.UserTasks.Any(ut => ut.UserId == employee.UserId)) 
+				{
+					task.UserTasks.Add(new UserTask
+					{
+						UserId = employee.UserId,
+						TaskId = task.TaskId
+					});
+				}
+			}
+			await _context.SaveChangesAsync();
+		}
+
 
 	}
 }

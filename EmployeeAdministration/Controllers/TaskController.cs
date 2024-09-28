@@ -1,4 +1,5 @@
 ﻿using EmployeeAdministration.Interfaces;
+using EmployeeAdministration.Services;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
 using EmployeeAdministration.ViewModels.TasksViewModels;
 using Entities.Models;
@@ -103,5 +104,23 @@ namespace EmployeeAdministration.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
+
+		[HttpPost("assignTaskTo")]
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> AssignTaskTo([FromBody] AssignTaskViewModel model)
+		{
+			await _task.AssignTaskTo(model);
+			return Ok("Task assigned successfully.");
+		}
+
+
+		[HttpPost("assignUserTaskTo")]
+		[Authorize(Roles = "Employee")]
+		public async Task<IActionResult> AssignUserTaskTo([FromBody] AssignTaskViewModel model)
+		{
+			await _task.UserAssignTaskTo(model);
+			return Ok("Task assigned to employees successfully.");
+		}
+
 	}
 }

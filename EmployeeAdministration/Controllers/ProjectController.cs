@@ -79,6 +79,7 @@ namespace EmployeeAdministration.Controllers
 		}
 
 		[HttpPost("assignProjectTo")]
+		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> AssignProjectTo([FromBody] AssignProjectViewModel model)
 		{
 			await _project.AssignProjectTo(model);

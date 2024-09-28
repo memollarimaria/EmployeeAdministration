@@ -13,5 +13,7 @@ namespace EmployeeAdministration.Interfaces
 		Task<ICollection<TaskViewModel>> GetAllTasks();
 		Task CreateUserTask(CreateTaskViewModel request);
 		Task UpdateUserTaskStatus(Guid taskId);
+		Task AssignTaskTo(AssignTaskViewModel request);
+		Task UserAssignTaskTo(AssignTaskViewModel request);
 	}
 }
