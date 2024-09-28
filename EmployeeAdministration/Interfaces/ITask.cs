@@ -11,5 +11,7 @@ namespace EmployeeAdministration.Interfaces
 		Task UpdateTask(UpdateTaskViewModel request);
 		Task UpdateTaskStatus(Guid taskId);
 		Task<ICollection<TaskViewModel>> GetAllTasks();
+		Task CreateUserTask(CreateTaskViewModel request);
+		Task UpdateUserTaskStatus(Guid taskId);
 	}
 }

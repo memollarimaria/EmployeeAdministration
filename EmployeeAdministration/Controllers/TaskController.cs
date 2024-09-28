@@ -47,6 +47,20 @@ namespace EmployeeAdministration.Controllers
 			return Ok("Task created successfully.");
 		}
 
+		[HttpPost("CreateUserTask")]
+		[Authorize(Roles = "Employee")]
+		public async Task<IActionResult> CreateUserTask([FromBody] CreateTaskViewModel request)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			await _task.CreateUserTask(request);
+			return Ok("Task created successfully.");
+		}
+
+
 		[HttpPut("UpdateTask")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskViewModel request)
@@ -57,6 +71,22 @@ namespace EmployeeAdministration.Controllers
 			}
 			await _task.UpdateTask(request);
 			return Ok("Task updated successfully");
+		}
+
+		[HttpPut("UpdateTaskStatus")]
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> UpdateTaskStatus(Guid taskId)
+		{
+			await _task.UpdateTaskStatus(taskId);
+			return Ok("Task status updated successfully");
+		}
+
+		[HttpPut("UpdateUserTaskStatus")]
+		[Authorize(Roles = "Employee")]
+		public async Task<IActionResult> UpdateUserTaskStatus(Guid taskId)
+		{
+			await _task.UpdateUserTaskStatus(taskId);
+			return Ok("Task status updated successfully");
 		}
 
 		[HttpDelete("DeleteTask")]

@@ -5,6 +5,7 @@ using EmployeeAdministration.ViewModels.TasksViewModels;
 using Entities.Enum;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace EmployeeAdministration.Services
 {
@@ -24,7 +25,7 @@ namespace EmployeeAdministration.Services
 				TaskName = request.TaskName,
 				Description = request.Description,
 				IsCompleted = false,
-				CreatedAt  =  DateTime.Now,
+				CreatedAt = DateTime.Now,
 				DueDate = request.DueDate,
 				ProjectId = request.ProjectId,
 				UserTasks = new List<UserTask>()
@@ -43,6 +44,47 @@ namespace EmployeeAdministration.Services
 			_context.Tasks.Add(task);
 			_context.SaveChanges();
 		}
+
+		public async System.Threading.Tasks.Task CreateUserTask(CreateTaskViewModel request)
+		{
+			Guid userId = StaticFunc.GetUserId(_httpContextAccessor);
+
+			var project = await _context.Projects
+				.Include(p => p.UserProjects)
+				.FirstOrDefaultAsync(p => p.ProjectId == request.ProjectId
+										  && p.UserProjects.Any(up => up.UserId == userId));
+
+			if (project == null)
+			{
+				throw new Exception("You are not assigned to this project or the project doesn't exist.");
+			}
+
+			var task = new Entities.Models.Task
+			{
+				TaskName = request.TaskName,
+				Description = request.Description,
+				CreatedAt = DateTime.Now,
+				DueDate = request.DueDate,
+				IsCompleted = false,
+				ProjectId = request.ProjectId,
+				UserTasks = new List<UserTask>()
+			};
+			foreach (var userTask in request.UserTasks)
+			{
+				if (!task.UserTasks.Any(up => up.UserId == userTask.userId))
+				{
+					task.UserTasks.Add(new UserTask
+					{
+						UserId = userTask.userId,
+						TaskId = task.ProjectId,
+					});
+				}
+			}
+
+			_context.Tasks.Add(task);
+			await _context.SaveChangesAsync();
+		}
+
 
 		public async System.Threading.Tasks.Task DeleteTask(Guid taskId)
 		{
@@ -125,5 +167,26 @@ namespace EmployeeAdministration.Services
 			_context.Tasks.Update(task);
 			await _context.SaveChangesAsync();
 		}
+
+		public async System.Threading.Tasks.Task UpdateUserTaskStatus(Guid taskId)
+		{
+			Guid userId = StaticFunc.GetUserId(_httpContextAccessor);
+
+			var task = await _context.Tasks
+			  .Include(t => t.UserTasks) 
+			  .FirstOrDefaultAsync(t => t.TaskId == taskId
+										&& t.UserTasks.Any(ut => ut.UserId == userId));
+
+			if (task == null)
+			{
+				throw new Exception("Task not found or you are not assigned to this task.");
+			}
+
+			task.IsCompleted = !task.IsCompleted;
+
+			_context.Tasks.Update(task);
+			await _context.SaveChangesAsync();
+		}
+
 	}
 }
