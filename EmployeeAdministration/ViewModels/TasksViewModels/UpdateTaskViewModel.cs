@@ -1,7 +1,10 @@
-﻿namespace EmployeeAdministration.ViewModels.TasksViewModels
+﻿using EmployeeAdministration.ViewModels.UserTasksViewModels;
+
+namespace EmployeeAdministration.ViewModels.TasksViewModels
 {
-	public class TaskViewModel
+	public class UpdateTaskViewModel
 	{
+		public Guid TaskId { get; set; }
 		public string TaskName { get; set; }
 		public string Description { get; set; }
 		public bool IsCompleted { get; set; }

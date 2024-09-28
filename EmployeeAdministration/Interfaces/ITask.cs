@@ -1,12 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using EmployeeAdministration.ViewModels.TasksViewModels;
+using System.Threading.Tasks;
 
 namespace EmployeeAdministration.Interfaces
 {
 	public interface ITask
 	{
-		Task<ICollection<Entities.Models.Task>> GetUserTasks();
-		Task CreateTask(Entities.Models.Task request);
+		Task<ICollection<TaskViewModel>> GetUserTasks();
+		Task CreateTask(CreateTaskViewModel request);
 		Task DeleteTask(Guid taskId);
-		Task UpdateTask(Entities.Models.Task request);
+		Task UpdateTask(UpdateTaskViewModel request);
+		Task UpdateTaskStatus(Guid taskId);
 	}
 }

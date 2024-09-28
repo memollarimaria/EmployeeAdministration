@@ -30,7 +30,7 @@ namespace EmployeeAdministration.Controllers
 			return Ok(projects);
 		}
 
-		[HttpPost]
+		[HttpPost("CreateProject")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> CreateProject([FromBody] CreateProjectViewModel request)
 		{
@@ -43,7 +43,7 @@ namespace EmployeeAdministration.Controllers
 			return Ok("Project created successfully.");
 		}
 
-		[HttpPut]
+		[HttpPut("UpdateProject")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> UpdateProject([FromBody] UpdateProjectViewModel request)
 		{
@@ -55,7 +55,7 @@ namespace EmployeeAdministration.Controllers
 			return Ok("Project updated successfully");
 		}
 
-		[HttpDelete]
+		[HttpDelete("DeleteProject")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> DeleteProject(Guid projectId)
 		{

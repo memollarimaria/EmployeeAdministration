@@ -5,7 +5,6 @@ namespace EmployeeAdministration.ViewModels.UserTasksViewModels
 {
 	public class UserTaskViewModel
 	{
-		public TaskViewModel Task { get; set; }
-		public UserViewModel User { get; set; }
+		public Guid userId { get; set; }
 	}
 }
