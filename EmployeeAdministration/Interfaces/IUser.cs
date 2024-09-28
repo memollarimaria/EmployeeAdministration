@@ -10,6 +10,6 @@ namespace EmployeeAdministration.Interfaces
 		Task<string> Login(LogInViewModel request);
 		Task CreateUser(LogInViewModel request);
 		Task DeleteUser(Guid userId);
-		Task UpdateUser(UpdateUserViewModel request);
+		Task UpdateUserProfilePicture(UpdateUserProfilePictureViewModel request);
 	}
 }

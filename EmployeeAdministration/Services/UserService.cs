@@ -75,18 +75,33 @@ namespace EmployeeAdministration.Services
 			return token;
 		}
 
-		public async System.Threading.Tasks.Task UpdateUser(UpdateUserViewModel request)
+		public async System.Threading.Tasks.Task UpdateUserProfilePicture(UpdateUserProfilePictureViewModel request)
 		{
 			Guid userId = StaticFunc.GetUserId(_httpContextAccessor);
+
 			var user = await _context.Users.FindAsync(userId);
 			if (user == null)
 			{
 				throw new Exception("User not found");
 			}
-			user.PhotoPath = request.PhotoPath;
-			user.PhotoContent = request.PhotoContent;
+
+			if (request.ImageFile != null)
+			{
+				var fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.ImageFile.FileName);
+
+				using (var stream = new MemoryStream())
+				{
+					await request.ImageFile.CopyToAsync(stream);
+					var imageData = stream.ToArray();
+
+					user.PhotoContent = imageData; 
+					user.PhotoPath = fileName;
+
+				}
+			}
+
 			_context.Users.Update(user);
-			_context.SaveChanges();
+			await _context.SaveChangesAsync();
 		}
 	}
 }

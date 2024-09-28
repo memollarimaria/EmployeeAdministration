@@ -61,12 +61,12 @@ namespace EmployeeAdministration.Controllers
 			return Ok(users);
 		}
 
-		[HttpPut]
-		public async Task<IActionResult> UpdateUser(UpdateUserViewModel request)
+		[HttpPut("UpdateUserProfilePicture")]
+		public async Task<IActionResult> UpdateUserProfilePicture([FromForm] UpdateUserProfilePictureViewModel request)
 		{
 			try
 			{
-				await _user.UpdateUser(request);
+				await _user.UpdateUserProfilePicture(request);
 				return Ok();
 			}
 			catch (Exception ex)
