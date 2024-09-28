@@ -27,6 +27,13 @@ namespace EmployeeAdministration.Controllers
 			return Ok(tasks);
 		}
 
+		[HttpGet("GetAllTasks")]
+		public async Task<IActionResult> GetAllTasks()
+		{
+			var tasks = await _task.GetAllTasks();
+			return Ok(tasks);
+		}
+
 		[HttpPost("CreateTask")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> CreateTask([FromBody] CreateTaskViewModel request)

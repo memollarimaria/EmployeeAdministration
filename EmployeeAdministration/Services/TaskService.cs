@@ -77,6 +77,23 @@ namespace EmployeeAdministration.Services
 			return tasksViewModel;
 		}
 
+		public async Task<ICollection<TaskViewModel>> GetAllTasks()
+		{
+			var tasks = await _context.Tasks
+				   .ToListAsync();
+
+			var tasksViewModel = tasks.Select(u => new TaskViewModel
+			{
+				TaskName = u.TaskName,
+				Description = u.Description,
+				CreatedAt = u.CreatedAt,
+				DueDate = u.DueDate,
+				IsCompleted = u.IsCompleted,
+			}).ToList();
+
+			return tasksViewModel;
+		}
+
 		public async System.Threading.Tasks.Task UpdateTask(UpdateTaskViewModel request)
 		{
 			var task = await _context.Tasks

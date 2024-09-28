@@ -10,5 +10,6 @@ namespace EmployeeAdministration.Interfaces
 		Task DeleteTask(Guid taskId);
 		Task UpdateTask(UpdateTaskViewModel request);
 		Task UpdateTaskStatus(Guid taskId);
+		Task<ICollection<TaskViewModel>> GetAllTasks();
 	}
 }

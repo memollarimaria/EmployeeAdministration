@@ -22,6 +22,13 @@ namespace EmployeeAdministration.Controllers
 			var projects = await _project.GetAllProject();
 			return Ok(projects);
 		}
+		[HttpGet("GetProjectTasks")]
+		public async Task<IActionResult> GetProjectTasks(Guid projectId)
+		{
+			var tasks = await _project.GetProjectTasks(projectId);
+			return Ok(tasks);
+		}
+
 
 		[HttpGet("GetAllUserProjects")]
 		public async Task<IActionResult> GetAllUserProjects()

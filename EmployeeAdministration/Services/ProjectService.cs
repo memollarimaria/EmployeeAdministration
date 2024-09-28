@@ -1,6 +1,7 @@
 ﻿using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
+using EmployeeAdministration.ViewModels.TasksViewModels;
 using EmployeeAdministration.ViewModels.UserProjectsViewModels;
 using EmployeeAdministration.ViewModels.UserViewModels;
 using Entities.Enum;
@@ -125,6 +126,29 @@ namespace EmployeeAdministration.Services
 			_context.Projects.Update(project);
 			await _context.SaveChangesAsync();
 		}
+
+		public async Task<ICollection<TaskViewModel>> GetProjectTasks(Guid projectId)
+		{
+			var project = await _context.Projects
+				.Include(p => p.Tasks)
+				.FirstOrDefaultAsync(p => p.ProjectId == projectId);
+
+			if (project == null)
+			{
+				throw new Exception("Project not found.");
+			}
+			var taskViewModels = project.Tasks.Select(task => new TaskViewModel
+			{
+				TaskName = task.TaskName,
+				Description = task.Description,
+				CreatedAt = task.CreatedAt,
+				DueDate = task.DueDate,
+				IsCompleted = task.IsCompleted
+			}).ToList();
+
+			return taskViewModels;
+		}
+
 
 	}
 }
