@@ -30,9 +30,21 @@ namespace EmployeeAdministration.Services
 				ProjectId = request.ProjectId,
 				UserTasks = new List<UserTask>()
 			};
+
+			var project = await _context.Projects
+				.Include(p => p.UserProjects) 
+				.FirstOrDefaultAsync(p => p.ProjectId == request.ProjectId);
+
+			if (project == null)
+			{
+				throw new Exception("Project not found.");
+			}
+
 			foreach (var userTask in request.UserTasks)
 			{
-				if (!task.UserTasks.Any(up => up.UserId == userTask.userId))
+				bool isUserInProject = project.UserProjects.Any(up => up.UserId == userTask.userId);
+
+				if (isUserInProject && !task.UserTasks.Any(ut => ut.UserId == userTask.userId))
 				{
 					task.UserTasks.Add(new UserTask
 					{
@@ -40,10 +52,16 @@ namespace EmployeeAdministration.Services
 						TaskId = task.ProjectId,
 					});
 				}
+				else if (!isUserInProject)
+				{
+					throw new Exception($"User with ID {userTask.userId} is not part of the project.");
+				}
 			}
+
 			_context.Tasks.Add(task);
-			_context.SaveChanges();
+			await _context.SaveChangesAsync();
 		}
+
 
 		public async System.Threading.Tasks.Task CreateUserTask(CreateTaskViewModel request)
 		{
