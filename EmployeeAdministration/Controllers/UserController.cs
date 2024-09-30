@@ -12,25 +12,21 @@ namespace EmployeeAdministration.Controllers
 	public class UserController : ControllerBase
 	{
 		private readonly IUser _user;
+		private readonly ILogger<UserController> _logger;
 
-        public UserController(IUser user)
+        public UserController(IUser user, ILogger<UserController> logger)
         {
 			_user = user;
+			_logger = logger;
 		}
 		[Authorize(Roles = "Admin")]
 		[HttpPost("CreateUser")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateUser(LogInViewModel request)
 		{
-
-			try
-			{
-				await _user.CreateUser(request);
-				return Ok(new { message = "User creation successful" });
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { message = ex.Message });
-			}
+			await _user.CreateUser(request);
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 
@@ -43,49 +39,43 @@ namespace EmployeeAdministration.Controllers
 
 			if (response != null)
 			{
-				return Ok(response);
+				return StatusCode(StatusCodes.Status201Created);
 			}
 
-			return BadRequest(new { message = "User login unsuccessful" });
+			return StatusCode(StatusCodes.Status400BadRequest);
 		}
 
 
 		[HttpGet]
+		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> GetAllUsers()
 		{
 			var users = await _user.GetAllUsers();
 			if (users == null)
 			{
-				return NotFound();
+				return StatusCode(StatusCodes.Status404NotFound);
 			}
 			return Ok(users);
 		}
 
 		[HttpPut("UpdateUserProfilePicture")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> UpdateUserProfilePicture([FromForm] UpdateUserProfilePictureViewModel request)
 		{
-			try
-			{
-				await _user.UpdateUserProfilePicture(request);
-				return Ok();
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, "Internal server error: " + ex);
-			}
+		     await _user.UpdateUserProfilePicture(request);
+			 return StatusCode(StatusCodes.Status201Created);
 		}
+
 		[HttpDelete]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> DeleteUser(Guid userId)
 		{
-			try
-			{
-				await _user.DeleteUser(userId);
-				return Ok();
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, "Internal server error: " + ex);
-			}
+			await _user.DeleteUser(userId);
+			return StatusCode(StatusCodes.Status201Created);
+
 		}
 	}
 }

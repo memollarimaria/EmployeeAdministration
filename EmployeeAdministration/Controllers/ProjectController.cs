@@ -12,16 +12,21 @@ namespace EmployeeAdministration.Controllers
 	public class ProjectController : ControllerBase
 	{
 		private readonly IProject _project;
-		public ProjectController(IProject project)
+		private readonly ILogger<UserController> _logger;
+		public ProjectController(IProject project, ILogger<UserController> logger)
 		{
 			_project = project;
+			_logger = logger;
 		}
 
 		[HttpGet("GetAllProjects")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> GetAllProjects()
 		{
 			var projects = await _project.GetAllProject();
-			return Ok(projects);
+			return StatusCode(StatusCodes.Status201Created);
+
 		}
 		[HttpGet("GetProjectTasks")]
 		public async Task<IActionResult> GetProjectTasks(Guid projectId)
@@ -40,50 +45,45 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpPost("CreateProject")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> CreateProject([FromBody] CreateProjectViewModel request)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
-
 			await _project.CreateProject(request);
-			return Ok("Project created successfully.");
+			return StatusCode(StatusCodes.Status201Created);
+
 		}
 
 		[HttpPut("UpdateProject")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateProject([FromBody] UpdateProjectViewModel request)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
 			await _project.UpdateProject(request);
-			return Ok("Project updated successfully");
+			return StatusCode(StatusCodes.Status201Created);
+
 		}
 
 		[HttpDelete("DeleteProject")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> DeleteProject(Guid projectId)
 		{
-			try
-			{
-				await _project.DeleteProject(projectId);
-				return Ok("Project deleted Successfully");
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
+			await _project.DeleteProject(projectId);
+			return StatusCode(StatusCodes.Status201Created);
+
 		}
 
 		[HttpPost("assignProjectTo")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> AssignProjectTo([FromBody] AssignProjectViewModel model)
 		{
 			await _project.AssignProjectTo(model);
-			return Ok("Project assigned successfully.");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 	}
 }

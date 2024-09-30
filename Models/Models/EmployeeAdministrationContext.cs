@@ -22,11 +22,11 @@ namespace Entities.Models
 				optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=EmployeeAdministration;Trusted_Connection=True;");
 			}
 		}
-		public DbSet<User> Users { get; set; }
-		public DbSet<Project> Projects { get; set; }
-		public DbSet<Task> Tasks { get; set; }
-		public DbSet<UserProject> UserProjects { get; set; }
-		public DbSet<UserTask> UserTasks { get; set; }
+		public DbSet<User>? Users { get; set; }
+		public DbSet<Project>? Projects { get; set; }
+		public DbSet<Task>? Tasks { get; set; }
+		public DbSet<UserProject>? UserProjects { get; set; }
+		public DbSet<UserTask>? UserTasks { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

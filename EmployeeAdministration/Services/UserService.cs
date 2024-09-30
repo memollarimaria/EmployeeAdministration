@@ -1,5 +1,6 @@
 ﻿using Abp.Events.Bus;
 using BCrypt.Net;
+using EmployeeAdministration.EventsBus.UserEventHandler;
 using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.UserViewModels;
@@ -37,13 +38,25 @@ namespace EmployeeAdministration.Services
 			};
 			_context.Users.Add(user);
 		    _context.SaveChanges();
+
+			EventBus.Default.Trigger(new UserCreatedEvent { UserId = user.UserId, Email = user.Email });
+
 		}
 
 		public async System.Threading.Tasks.Task DeleteUser(Guid userId)
 		{
 			var userToDelete = _context.Users.Where(u=> u.UserId == userId).FirstOrDefault();
+
+			if (userToDelete == null)
+			{
+				throw new Exception("User not found");
+			}
+
 			_context.Users.Remove(userToDelete);
 			_context.SaveChanges();
+
+			EventBus.Default.Trigger(new UserDeletedEvent { UserId = userToDelete.UserId, Email = userToDelete.Email });
+
 		}
 
 		public async Task<ICollection<UserViewModel>> GetAllUsers()
@@ -72,6 +85,9 @@ namespace EmployeeAdministration.Services
 			};
 
 			var token = _jwt.CreateToken(authclaims);
+
+			EventBus.Default.TriggerAsync(new UserLoggedInEvent { UserId = user.UserId, Email = user.Email });
+	
 			return token;
 		}
 
@@ -102,6 +118,9 @@ namespace EmployeeAdministration.Services
 
 			_context.Users.Update(user);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.TriggerAsync(new UserProfilePictureUpdatedEvent { UserId = user.UserId, PhotoContent = user.PhotoContent });
+
 		}
 	}
 }

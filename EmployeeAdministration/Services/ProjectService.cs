@@ -1,4 +1,6 @@
-﻿using EmployeeAdministration.Helpers;
+﻿using Abp.Events.Bus;
+using EmployeeAdministration.Events;
+using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
 using EmployeeAdministration.ViewModels.TasksViewModels;
@@ -45,6 +47,9 @@ namespace EmployeeAdministration.Services
 			}
 			_context.Projects.Add(project);
 			_context.SaveChanges();
+
+			EventBus.Default.Trigger(new ProjectCreatedEvent { ProjectId = project.ProjectId, ProjectName = project.ProjectName });
+
 		}
 
 		public async System.Threading.Tasks.Task DeleteProject(Guid projectId)
@@ -66,6 +71,9 @@ namespace EmployeeAdministration.Services
 
 			_context.Projects.Remove(project);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new ProjectDeletedEvent { ProjectId = project.ProjectId, ProjectName = project.ProjectName });
+
 		}
 
 
@@ -125,6 +133,9 @@ namespace EmployeeAdministration.Services
 
 			_context.Projects.Update(project);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new ProjectUpdatedEvent { ProjectId = project.ProjectId, ProjectName = project.ProjectName });
+
 		}
 
 		public async Task<ICollection<TaskViewModel>> GetProjectTasks(Guid projectId)
@@ -180,6 +191,12 @@ namespace EmployeeAdministration.Services
 				}
 			}
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new ProjectAssignedEvent
+			{
+				ProjectId = project.ProjectId,
+				AssignedUserIds = request.UserIds
+			});
 		}
 
 

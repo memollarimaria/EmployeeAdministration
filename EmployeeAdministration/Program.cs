@@ -8,6 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System;
+using EmployeeAdministration.EventHandlers;
+using EmployeeAdministration.Middlewares;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +25,27 @@ builder.Services.AddDbContext<EmployeeAdministrationContext>(options =>
 
 builder.Services.AddHttpContextAccessor();
 
+Log.Logger = new LoggerConfiguration()
+	.MinimumLevel.Information()
+	.Enrich.FromLogContext()
+	.WriteTo.Console()    
+	.WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day) 
+	.CreateLogger();
+
+builder.Host.UseSerilog();
+
 //DI
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IProject, ProjectService>();
 builder.Services.AddScoped<ITask, TaskService>();
+
+//EventHandlers
+builder.Services.AddTransient<UserCreatedEventHanlder>();
+builder.Services.AddTransient<UserLoggedInEventHandler>();
+builder.Services.AddTransient<UserProfilePictureUpdatedEventHandler>();
+builder.Services.AddTransient<UserDeletedEventHandler>();
+
+builder.Services.AddLogging();
 
 
 builder.Services.AddScoped<Jwt>();
@@ -88,7 +108,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -97,3 +117,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+Log.CloseAndFlush();
+

@@ -1,4 +1,6 @@
-﻿using EmployeeAdministration.Helpers;
+﻿using Abp.Events.Bus;
+using EmployeeAdministration.Events;
+using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
 using EmployeeAdministration.ViewModels.TasksViewModels;
@@ -60,6 +62,8 @@ namespace EmployeeAdministration.Services
 
 			_context.Tasks.Add(task);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskCreatedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
 		}
 
 
@@ -101,6 +105,9 @@ namespace EmployeeAdministration.Services
 
 			_context.Tasks.Add(task);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskCreatedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
+
 		}
 
 
@@ -116,6 +123,9 @@ namespace EmployeeAdministration.Services
 
 			_context.Tasks.Remove(task);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskDeletedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
+
 		}
 
 		public async Task<ICollection<TaskViewModel>> GetUserTasks()
@@ -172,6 +182,9 @@ namespace EmployeeAdministration.Services
 
 			_context.Tasks.Update(task);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskUpdatedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
+
 		}
 
 		public async System.Threading.Tasks.Task UpdateTaskStatus(Guid taskid)
@@ -184,6 +197,12 @@ namespace EmployeeAdministration.Services
 			task.IsCompleted = !task.IsCompleted;
 			_context.Tasks.Update(task);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskStatusUpdatedEvent
+			{
+				TaskId = task.TaskId,
+				IsCompleted = task.IsCompleted
+			});
 		}
 
 		public async System.Threading.Tasks.Task UpdateUserTaskStatus(Guid taskId)
@@ -204,6 +223,12 @@ namespace EmployeeAdministration.Services
 
 			_context.Tasks.Update(task);
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskStatusUpdatedEvent
+			{
+				TaskId = task.TaskId,
+				IsCompleted = task.IsCompleted
+			});
 		}
 		public async System.Threading.Tasks.Task AssignTaskTo(AssignTaskViewModel request)
 		{
@@ -240,6 +265,12 @@ namespace EmployeeAdministration.Services
 			}
 
 			await _context.SaveChangesAsync();
+			EventBus.Default.Trigger(new TaskAssignedEvent
+			{
+				TaskId = task.TaskId,
+				AssignedUserIds = request.UserIds
+			});
+
 		}
 
 		public async System.Threading.Tasks.Task UserAssignTaskTo(AssignTaskViewModel request)
@@ -276,6 +307,12 @@ namespace EmployeeAdministration.Services
 				}
 			}
 			await _context.SaveChangesAsync();
+
+			EventBus.Default.Trigger(new TaskAssignedEvent
+			{
+				TaskId = task.TaskId,
+				AssignedUserIds = request.UserIds
+			});
 		}
 
 

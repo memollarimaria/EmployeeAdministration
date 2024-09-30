@@ -14,10 +14,12 @@ namespace EmployeeAdministration.Controllers
 	public class TaskController : ControllerBase
 	{
 		private readonly ITask _task;
+		private readonly ILogger<UserController> _logger;
 
-        public TaskController(ITask task)
+		public TaskController(ITask task, ILogger<UserController> logger)
 		{
 			_task = task;
+			_logger = logger;
 		}
 
 
@@ -37,89 +39,84 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpPost("CreateTask")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> CreateTask([FromBody] CreateTaskViewModel request)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
-
 			await _task.CreateTask(request);
-			return Ok("Task created successfully.");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 		[HttpPost("CreateUserTask")]
 		[Authorize(Roles = "Employee")]
 		public async Task<IActionResult> CreateUserTask([FromBody] CreateTaskViewModel request)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
-
 			await _task.CreateUserTask(request);
-			return Ok("Task created successfully.");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 
 		[HttpPut("UpdateTask")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskViewModel request)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
 			await _task.UpdateTask(request);
-			return Ok("Task updated successfully");
+			return StatusCode(StatusCodes.Status201Created);
 		}
+
 
 		[HttpPut("UpdateTaskStatus")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateTaskStatus(Guid taskId)
 		{
 			await _task.UpdateTaskStatus(taskId);
-			return Ok("Task status updated successfully");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 		[HttpPut("UpdateUserTaskStatus")]
 		[Authorize(Roles = "Employee")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateUserTaskStatus(Guid taskId)
 		{
 			await _task.UpdateUserTaskStatus(taskId);
-			return Ok("Task status updated successfully");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 		[HttpDelete("DeleteTask")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> DeleteTask(Guid taskId)
 		{
-			try
-			{
 				await _task.DeleteTask(taskId);
-				return Ok("task deleted Successfully");
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
+				return StatusCode(StatusCodes.Status201Created);
 		}
+
 
 		[HttpPost("assignTaskTo")]
 		[Authorize(Roles = "Admin")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> AssignTaskTo([FromBody] AssignTaskViewModel model)
 		{
 			await _task.AssignTaskTo(model);
-			return Ok("Task assigned successfully.");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 
 		[HttpPost("assignUserTaskTo")]
 		[Authorize(Roles = "Employee")]
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> AssignUserTaskTo([FromBody] AssignTaskViewModel model)
 		{
 			await _task.UserAssignTaskTo(model);
-			return Ok("Task assigned to employees successfully.");
+			return StatusCode(StatusCodes.Status201Created);
 		}
 
 	}
