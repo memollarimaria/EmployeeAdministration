@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Entities.Models
 {
-	public class EmployeeAdministrationContext : DbContext
+	public class EmployeeAdministrationContext : IdentityDbContext<User,UserRole,Guid>
 	{
 		public EmployeeAdministrationContext(DbContextOptions<EmployeeAdministrationContext> options)
 	: base(options)
@@ -19,12 +21,11 @@ namespace Entities.Models
 		{
 			if (!optionsBuilder.IsConfigured)
 			{
-				optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=EmployeeAdministration;Trusted_Connection=True;");
+				optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=EmployeeAdmin;Trusted_Connection=True;");
 			}
 		}
-		public DbSet<User>? Users { get; set; }
-		public DbSet<Project>? Projects { get; set; }
 		public DbSet<Task>? Tasks { get; set; }
+		public DbSet<Project>? Projects { get; set; }
 		public DbSet<UserProject>? UserProjects { get; set; }
 		public DbSet<UserTask>? UserTasks { get; set; }
 

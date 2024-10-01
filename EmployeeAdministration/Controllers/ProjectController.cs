@@ -25,7 +25,11 @@ namespace EmployeeAdministration.Controllers
 		public async Task<IActionResult> GetAllProjects()
 		{
 			var projects = await _project.GetAllProject();
-			return StatusCode(StatusCodes.Status201Created);
+			if (projects == null)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError);
+			}
+			return Ok(projects);
 
 		}
 		[HttpGet("GetProjectTasks")]
@@ -43,10 +47,9 @@ namespace EmployeeAdministration.Controllers
 			return Ok(projects);
 		}
 
+
 		[HttpPost("CreateProject")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> CreateProject([FromBody] CreateProjectViewModel request)
 		{
 			await _project.CreateProject(request);
@@ -56,8 +59,6 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpPut("UpdateProject")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateProject([FromBody] UpdateProjectViewModel request)
 		{
 			await _project.UpdateProject(request);
@@ -78,8 +79,6 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpPost("assignProjectTo")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> AssignProjectTo([FromBody] AssignProjectViewModel model)
 		{
 			await _project.AssignProjectTo(model);

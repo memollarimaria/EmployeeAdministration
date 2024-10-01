@@ -4,6 +4,7 @@ using Entities.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace EmployeeAdministration.Controllers
 {
@@ -39,11 +40,12 @@ namespace EmployeeAdministration.Controllers
 
 			if (response != null)
 			{
-				return StatusCode(StatusCodes.Status201Created);
+				return Ok(response);
 			}
 
 			return StatusCode(StatusCodes.Status400BadRequest);
 		}
+
 
 
 		[HttpGet]

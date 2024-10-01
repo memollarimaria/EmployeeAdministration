@@ -6,6 +6,7 @@ using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.UserViewModels;
 using Entities.Enum;
 using Entities.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -16,36 +17,45 @@ namespace EmployeeAdministration.Services
 		private readonly Jwt _jwt;
 		private readonly EmployeeAdministrationContext _context;
 		private readonly IHttpContextAccessor _httpContextAccessor;
-        public UserService(EmployeeAdministrationContext context,Jwt jwt, IHttpContextAccessor httpContextAccessor)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+
+
+
+        public UserService(
+         EmployeeAdministrationContext context,
+         UserManager<User> userManager,
+         SignInManager<User> signInManager,
+         Jwt jwtService)
         {
-			_context = context;
-			_jwt = jwt;
-			_httpContextAccessor = httpContextAccessor;
-		}
-        public async System.Threading.Tasks.Task CreateUser(LogInViewModel request)
+            _context = context;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _jwt = jwtService;
+        }
+        public async System.Threading.Tasks.Task CreateUser(LogInViewModel model)
+        {
+            var user = new User
+            {
+                UserName = model.Email,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+            else
+            {
+                throw new Exception("User registration failed");
+            }
+        }
+
+
+        public async System.Threading.Tasks.Task DeleteUser(Guid userId)
 		{
-			var userByEmail = _context.Users.Where(u=>u.Email == request.Email).FirstOrDefault();
-			if (userByEmail != null)
-			{
-				throw new Exception("User already exists.");
-			}
-			string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-			var user = new User
-			{
-				Email = request.Email,
-				Password = passwordHash,
-				Role = Role.Employee,
-			};
-			_context.Users.Add(user);
-		    _context.SaveChanges();
-
-			EventBus.Default.Trigger(new UserCreatedEvent { UserId = user.UserId, Email = user.Email });
-
-		}
-
-		public async System.Threading.Tasks.Task DeleteUser(Guid userId)
-		{
-			var userToDelete = _context.Users.Where(u=> u.UserId == userId).FirstOrDefault();
+			var userToDelete = _context.Users.Where(u=> u.Id == userId).FirstOrDefault();
 
 			if (userToDelete == null)
 			{
@@ -55,72 +65,89 @@ namespace EmployeeAdministration.Services
 			_context.Users.Remove(userToDelete);
 			_context.SaveChanges();
 
-			EventBus.Default.Trigger(new UserDeletedEvent { UserId = userToDelete.UserId, Email = userToDelete.Email });
+			EventBus.Default.Trigger(new UserDeletedEvent { UserId = userToDelete.Id, Email = userToDelete.Email });
 
 		}
 
-		public async Task<ICollection<UserViewModel>> GetAllUsers()
-		{
-			var users = await _context.Users.ToListAsync();
-			var userViewModels = users.Select(u => new UserViewModel
-			{
-				Email = u.Email,
-			}).ToList();
+        public async Task<ICollection<UserViewModel>> GetAllUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
 
-			return userViewModels;
-		}
+            var userViewModels = users.Select(u => new UserViewModel
+            {
+                Email = u.Email,
+            }).ToList();
 
-		public async Task<string> Login(LogInViewModel request)
-		{
-			var user = _context.Users.Where(u=>u.Email == request.Email).FirstOrDefault();
-			if(user ==null || !BCrypt.Net.BCrypt.Verify(request.Password,user.Password))
-			{
-				throw new Exception("Wrong email or password");
-			}
-			var authclaims = new List<Claim>
-			{
-				new(ClaimTypes.Email, user.Email),
-				new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-				new(ClaimTypes.Role, user.Role.ToString())
-			};
+            return userViewModels;
+        }
 
-			var token = _jwt.CreateToken(authclaims);
 
-			EventBus.Default.TriggerAsync(new UserLoggedInEvent { UserId = user.UserId, Email = user.Email });
-	
-			return token;
-		}
+        public async Task<string> Login(LogInViewModel request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
 
-		public async System.Threading.Tasks.Task UpdateUserProfilePicture(UpdateUserProfilePictureViewModel request)
-		{
-			Guid userId = StaticFunc.GetUserId(_httpContextAccessor);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+            if (!result.Succeeded)
+            {
+                throw new Exception("Wrong email or password");
+            }
 
-			var user = await _context.Users.FindAsync(userId);
-			if (user == null)
-			{
-				throw new Exception("User not found");
-			}
+            var roles = await _userManager.GetRolesAsync(user);
 
-			if (request.ImageFile != null)
-			{
-				var fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.ImageFile.FileName);
+            var authClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            };
 
-				using (var stream = new MemoryStream())
-				{
-					await request.ImageFile.CopyToAsync(stream);
-					var imageData = stream.ToArray();
+            foreach (var role in roles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
-					user.PhotoContent = imageData; 
-					user.PhotoPath = fileName;
+            var token = _jwt.CreateToken(authClaims);
 
-				}
-			}
+            EventBus.Default.TriggerAsync(new UserLoggedInEvent { UserId = user.Id, Email = user.Email });
 
-			_context.Users.Update(user);
-			await _context.SaveChangesAsync();
+            return token;
+        }
 
-			EventBus.Default.TriggerAsync(new UserProfilePictureUpdatedEvent { UserId = user.UserId, PhotoContent = user.PhotoContent });
+        public async System.Threading.Tasks.Task UpdateUserProfilePicture(UpdateUserProfilePictureViewModel request)
+        {
+            Guid userId = StaticFunc.GetUserId(_httpContextAccessor);
 
-		}
-	}
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            if (request.ImageFile != null)
+            {
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(request.ImageFile.FileName);
+
+                using (var stream = new MemoryStream())
+                {
+                    await request.ImageFile.CopyToAsync(stream);
+                    var imageData = stream.ToArray();
+
+                    user.PhotoContent = imageData;
+                    user.PhotoPath = fileName;
+                }
+
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Error updating user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+
+                EventBus.Default.TriggerAsync(new UserProfilePictureUpdatedEvent { UserId = user.Id, PhotoContent = user.PhotoContent });
+            }
+        }
+
+    }
 }

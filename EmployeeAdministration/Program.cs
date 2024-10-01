@@ -11,6 +11,8 @@ using System;
 using EmployeeAdministration.EventHandlers;
 using EmployeeAdministration.Middlewares;
 using Serilog;
+using Microsoft.AspNetCore.Identity;
+using Entities.Enum;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<EmployeeAdministrationContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+builder.Services.AddIdentity<User, UserRole>()
+ .AddEntityFrameworkStores<EmployeeAdministrationContext>()
+ .AddDefaultTokenProviders();
+
+//DI
+builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<IProject, ProjectService>();
+builder.Services.AddScoped<ITask, TaskService>();
+
+
 builder.Services.AddHttpContextAccessor();
 
 Log.Logger = new LoggerConfiguration()
@@ -34,10 +47,6 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-//DI
-builder.Services.AddScoped<IUser, UserService>();
-builder.Services.AddScoped<IProject, ProjectService>();
-builder.Services.AddScoped<ITask, TaskService>();
 
 //EventHandlers
 builder.Services.AddTransient<UserCreatedEventHanlder>();
@@ -106,6 +115,8 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+
+
 
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

@@ -1,5 +1,6 @@
 ﻿using EmployeeAdministration.ViewModels.ExceptionMiddleware;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Net;
 
 namespace EmployeeAdministration.Middlewares

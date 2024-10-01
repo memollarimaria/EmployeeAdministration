@@ -1,5 +1,6 @@
 ﻿using Abp.Events.Bus.Handlers;
 using EmployeeAdministration.EventsBus.UserEventHandler;
+using Serilog;
 
 namespace EmployeeAdministration.EventHandlers
 {

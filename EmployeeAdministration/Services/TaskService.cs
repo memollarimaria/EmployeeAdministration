@@ -254,11 +254,11 @@ namespace EmployeeAdministration.Services
 
 			foreach (var user in users)
 			{
-				if (!task.UserTasks.Any(ut => ut.UserId == user.UserId))
+				if (!task.UserTasks.Any(ut => ut.UserId == user.Id))
 				{
 					task.UserTasks.Add(new UserTask
 					{
-						UserId = user.UserId,
+						UserId = user.Id,
 						TaskId = task.TaskId
 					});
 				}
@@ -297,11 +297,11 @@ namespace EmployeeAdministration.Services
 
 			foreach (var employee in employees)
 			{
-				if (!task.UserTasks.Any(ut => ut.UserId == employee.UserId)) 
+				if (!task.UserTasks.Any(ut => ut.UserId == employee.Id)) 
 				{
 					task.UserTasks.Add(new UserTask
 					{
-						UserId = employee.UserId,
+						UserId = employee.Id,
 						TaskId = task.TaskId
 					});
 				}

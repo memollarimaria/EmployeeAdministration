@@ -17,11 +17,14 @@ namespace EmployeeAdministration.Services
 	{
 		private readonly EmployeeAdministrationContext _context;
 		private readonly IHttpContextAccessor _httpContextAccessor;
-		public ProjectService(EmployeeAdministrationContext context, IHttpContextAccessor httpContextAccessor)
-		{
+        private readonly UserManager<User> _userManager;
+        public ProjectService(EmployeeAdministrationContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager)
+
+        {
 			_context = context;
 			_httpContextAccessor = httpContextAccessor;
-		}
+            _userManager = userManager;
+        }
 
 		public async System.Threading.Tasks.Task CreateProject(CreateProjectViewModel request)
 		{
@@ -90,6 +93,7 @@ namespace EmployeeAdministration.Services
 				EndDate = project.EndDate,
 				ProjectStatus = project.ProjectStatus,
 			}).ToList();
+
 
 			return projectViewModels;
 		}
@@ -171,7 +175,7 @@ namespace EmployeeAdministration.Services
 				throw new Exception("Project not found.");
 			}
 			var users = await _context.Users
-				.Where(u => request.UserIds.Contains(u.UserId))
+				.Where(u => request.UserIds.Contains(u.Id))
 				.ToListAsync();
 
 			if (!users.Any())
@@ -181,11 +185,11 @@ namespace EmployeeAdministration.Services
 
 			foreach (var user in users)
 			{
-				if (!project.UserProjects.Any(up => up.UserId == user.UserId))
+				if (!project.UserProjects.Any(up => up.UserId == user.Id))
 				{
 					project.UserProjects.Add(new UserProject
 					{
-						UserId = user.UserId,
+						UserId = user.Id,
 						ProjectId = project.ProjectId
 					});
 				}

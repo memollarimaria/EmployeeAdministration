@@ -6,6 +6,7 @@ using Entities.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace EmployeeAdministration.Controllers
 {
@@ -48,7 +49,7 @@ namespace EmployeeAdministration.Controllers
 		}
 
 		[HttpPost("CreateUserTask")]
-		[Authorize(Roles = "Employee")]
+		[Authorize(Roles = "User")]
 		public async Task<IActionResult> CreateUserTask([FromBody] CreateTaskViewModel request)
 		{
 			await _task.CreateUserTask(request);
@@ -78,9 +79,7 @@ namespace EmployeeAdministration.Controllers
 		}
 
 		[HttpPut("UpdateUserTaskStatus")]
-		[Authorize(Roles = "Employee")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[Authorize(Roles = "User")]
 		public async Task<IActionResult> UpdateUserTaskStatus(Guid taskId)
 		{
 			await _task.UpdateUserTaskStatus(taskId);
@@ -89,8 +88,6 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpDelete("DeleteTask")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> DeleteTask(Guid taskId)
 		{
 				await _task.DeleteTask(taskId);
@@ -100,8 +97,6 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpPost("assignTaskTo")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> AssignTaskTo([FromBody] AssignTaskViewModel model)
 		{
 			await _task.AssignTaskTo(model);
@@ -110,9 +105,7 @@ namespace EmployeeAdministration.Controllers
 
 
 		[HttpPost("assignUserTaskTo")]
-		[Authorize(Roles = "Employee")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[Authorize(Roles = "User")]
 		public async Task<IActionResult> AssignUserTaskTo([FromBody] AssignTaskViewModel model)
 		{
 			await _task.UserAssignTaskTo(model);
