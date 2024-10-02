@@ -8,11 +8,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System;
-using EmployeeAdministration.EventHandlers;
 using EmployeeAdministration.Middlewares;
 using Serilog;
 using Microsoft.AspNetCore.Identity;
 using Entities.Enum;
+using EmployeeAdministration.EventBus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +34,10 @@ builder.Services.AddIdentity<User, UserRole>()
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IProject, ProjectService>();
 builder.Services.AddScoped<ITask, TaskService>();
+builder.Services.AddSingleton<IRabbitMQ, RabbitMQService>();
+builder.Services.AddTransient<UserEvent>();       
+builder.Services.AddTransient<ProjectEvent>();       
+builder.Services.AddTransient<TaskEvent>();       
 
 
 builder.Services.AddHttpContextAccessor();
@@ -47,17 +51,22 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-
-//EventHandlers
-builder.Services.AddTransient<UserCreatedEventHanlder>();
-builder.Services.AddTransient<UserLoggedInEventHandler>();
-builder.Services.AddTransient<UserProfilePictureUpdatedEventHandler>();
-builder.Services.AddTransient<UserDeletedEventHandler>();
-
 builder.Services.AddLogging();
 
 
 builder.Services.AddScoped<Jwt>();
+
+builder.Services.AddSingleton<RabbitMQ.Client.ConnectionFactory>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    return new RabbitMQ.Client.ConnectionFactory()
+    {
+        HostName = configuration["RabbitMQ:HostName"],
+        Port = int.Parse(configuration["RabbitMQ:Port"]),
+        UserName = configuration["RabbitMQ:UserName"],
+        Password = configuration["RabbitMQ:Password"]
+    };
+});
 
 builder.Services.AddAuthentication(opt =>
 {

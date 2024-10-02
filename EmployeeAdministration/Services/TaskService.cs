@@ -1,5 +1,4 @@
-﻿using Abp.Events.Bus;
-using EmployeeAdministration.Events;
+﻿using EmployeeAdministration.EventBus;
 using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
@@ -15,11 +14,13 @@ namespace EmployeeAdministration.Services
 	{
 		private readonly EmployeeAdministrationContext _context;
 		private readonly IHttpContextAccessor _httpContextAccessor;
-		public TaskService(EmployeeAdministrationContext context, IHttpContextAccessor httpContextAccessor)
+		private readonly TaskEvent _taskEvent;
+		public TaskService(EmployeeAdministrationContext context, IHttpContextAccessor httpContextAccessor, TaskEvent taskEvent)
 		{
 			_context = context;
 			_httpContextAccessor = httpContextAccessor;
-		}
+            _taskEvent = taskEvent;
+        }
 		public async System.Threading.Tasks.Task CreateTask(CreateTaskViewModel request)
 		{
 			var task = new Entities.Models.Task
@@ -61,9 +62,9 @@ namespace EmployeeAdministration.Services
 			}
 
 			_context.Tasks.Add(task);
-			await _context.SaveChangesAsync();
+            _taskEvent.LogTaskCreated(task.TaskName);
+            await _context.SaveChangesAsync();
 
-			EventBus.Default.Trigger(new TaskCreatedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
 		}
 
 
@@ -106,7 +107,6 @@ namespace EmployeeAdministration.Services
 			_context.Tasks.Add(task);
 			await _context.SaveChangesAsync();
 
-			EventBus.Default.Trigger(new TaskCreatedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
 
 		}
 
@@ -122,10 +122,8 @@ namespace EmployeeAdministration.Services
 			}
 
 			_context.Tasks.Remove(task);
-			await _context.SaveChangesAsync();
-
-			EventBus.Default.Trigger(new TaskDeletedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
-
+            _taskEvent.LogTaskDeleted(task.TaskName);
+            await _context.SaveChangesAsync();
 		}
 
 		public async Task<ICollection<TaskViewModel>> GetUserTasks()
@@ -181,9 +179,8 @@ namespace EmployeeAdministration.Services
 			task.IsCompleted = request.IsCompleted;
 
 			_context.Tasks.Update(task);
-			await _context.SaveChangesAsync();
-
-			EventBus.Default.Trigger(new TaskUpdatedEvent { TaskId = task.TaskId, TaskName = task.TaskName });
+            _taskEvent.LogTaskUpdated(task.TaskName);
+            await _context.SaveChangesAsync();
 
 		}
 
@@ -196,13 +193,8 @@ namespace EmployeeAdministration.Services
 				}
 			task.IsCompleted = !task.IsCompleted;
 			_context.Tasks.Update(task);
-			await _context.SaveChangesAsync();
-
-			EventBus.Default.Trigger(new TaskStatusUpdatedEvent
-			{
-				TaskId = task.TaskId,
-				IsCompleted = task.IsCompleted
-			});
+            _taskEvent.LogTaskStatusUpdate(task.TaskName,task.IsCompleted);
+            await _context.SaveChangesAsync();
 		}
 
 		public async System.Threading.Tasks.Task UpdateUserTaskStatus(Guid taskId)
@@ -220,15 +212,10 @@ namespace EmployeeAdministration.Services
 			}
 
 			task.IsCompleted = !task.IsCompleted;
-
 			_context.Tasks.Update(task);
-			await _context.SaveChangesAsync();
+            _taskEvent.LogTaskStatusUpdate(task.TaskName, task.IsCompleted);
+            await _context.SaveChangesAsync();
 
-			EventBus.Default.Trigger(new TaskStatusUpdatedEvent
-			{
-				TaskId = task.TaskId,
-				IsCompleted = task.IsCompleted
-			});
 		}
 		public async System.Threading.Tasks.Task AssignTaskTo(AssignTaskViewModel request)
 		{
@@ -251,8 +238,9 @@ namespace EmployeeAdministration.Services
 			{
 				throw new Exception("No valid users found for assignment or they are not part of the project.");
 			}
+            var assignedUsers = new List<string>();
 
-			foreach (var user in users)
+            foreach (var user in users)
 			{
 				if (!task.UserTasks.Any(ut => ut.UserId == user.Id))
 				{
@@ -261,15 +249,11 @@ namespace EmployeeAdministration.Services
 						UserId = user.Id,
 						TaskId = task.TaskId
 					});
-				}
+                    assignedUsers.Add(user.Email);
+                }
 			}
-
-			await _context.SaveChangesAsync();
-			EventBus.Default.Trigger(new TaskAssignedEvent
-			{
-				TaskId = task.TaskId,
-				AssignedUserIds = request.UserIds
-			});
+            _taskEvent.LogTaskAssigned(assignedUsers);
+            await _context.SaveChangesAsync();
 
 		}
 
@@ -295,7 +279,9 @@ namespace EmployeeAdministration.Services
 				throw new Exception("No valid employees found for assignment or they are not part of the project.");
 			}
 
-			foreach (var employee in employees)
+            var assignedUsers = new List<string>();
+
+            foreach (var employee in employees)
 			{
 				if (!task.UserTasks.Any(ut => ut.UserId == employee.Id)) 
 				{
@@ -304,17 +290,35 @@ namespace EmployeeAdministration.Services
 						UserId = employee.Id,
 						TaskId = task.TaskId
 					});
-				}
-			}
-			await _context.SaveChangesAsync();
-
-			EventBus.Default.Trigger(new TaskAssignedEvent
-			{
-				TaskId = task.TaskId,
-				AssignedUserIds = request.UserIds
-			});
+                    assignedUsers.Add(employee.UserName);
+                }
+            }
+            _taskEvent.LogTaskAssigned(assignedUsers);
+            await _context.SaveChangesAsync();
 		}
 
+        public async System.Threading.Tasks.Task RemoveAssignment(RemoveAssignmentViewModel request)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.UserTasks)
+                .FirstOrDefaultAsync(t => t.TaskId == request.TaskId);
 
-	}
+            if (task == null)
+            {
+                throw new Exception("Task not found.");
+            }
+
+            var userTask = task.UserTasks.FirstOrDefault(ut => ut.UserId == request.UserId);
+
+            if (userTask == null)
+            {
+                throw new Exception($"User with ID {request.UserId} is not assigned to this task.");
+            }
+
+            task.UserTasks.Remove(userTask);
+            _taskEvent.LogTaskAssigmentDeleted(task.TaskName);
+            await _context.SaveChangesAsync();
+        }
+
+    }
 }

@@ -1,6 +1,5 @@
-﻿using Abp.Events.Bus;
-using BCrypt.Net;
-using EmployeeAdministration.EventsBus.UserEventHandler;
+﻿using BCrypt.Net;
+using EmployeeAdministration.EventBus;
 using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.UserViewModels;
@@ -19,18 +18,19 @@ namespace EmployeeAdministration.Services
 		private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-
-
+        private readonly UserEvent _userEvent;
 
         public UserService(
          EmployeeAdministrationContext context,
          UserManager<User> userManager,
          SignInManager<User> signInManager,
+         UserEvent userEvent,
          Jwt jwtService)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
+            _userEvent = userEvent;
             _jwt = jwtService;
         }
         public async System.Threading.Tasks.Task CreateUser(LogInViewModel model)
@@ -45,6 +45,8 @@ namespace EmployeeAdministration.Services
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "User");
+                _userEvent.LogUserCreated(user.Email); 
+
             }
             else
             {
@@ -63,9 +65,9 @@ namespace EmployeeAdministration.Services
 			}
 
 			_context.Users.Remove(userToDelete);
-			_context.SaveChanges();
+            _userEvent.LogUserDeleted(userToDelete.Email);
+            _context.SaveChanges();
 
-			EventBus.Default.Trigger(new UserDeletedEvent { UserId = userToDelete.Id, Email = userToDelete.Email });
 
 		}
 
@@ -110,9 +112,7 @@ namespace EmployeeAdministration.Services
             }
 
             var token = _jwt.CreateToken(authClaims);
-
-            EventBus.Default.TriggerAsync(new UserLoggedInEvent { UserId = user.Id, Email = user.Email });
-
+            _userEvent.LogUserLoggedIn(user.Email);
             return token;
         }
 
@@ -144,8 +144,7 @@ namespace EmployeeAdministration.Services
                 {
                     throw new Exception("Error updating user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
-
-                EventBus.Default.TriggerAsync(new UserProfilePictureUpdatedEvent { UserId = user.Id, PhotoContent = user.PhotoContent });
+                _userEvent.LogUserProfileUpdated(user.Email);
             }
         }
 

@@ -12,8 +12,8 @@ namespace EmployeeAdministration.Controllers
 	public class ProjectController : ControllerBase
 	{
 		private readonly IProject _project;
-		private readonly ILogger<UserController> _logger;
-		public ProjectController(IProject project, ILogger<UserController> logger)
+		private readonly ILogger<ProjectController> _logger;
+		public ProjectController(IProject project, ILogger<ProjectController> logger)
 		{
 			_project = project;
 			_logger = logger;
@@ -76,6 +76,7 @@ namespace EmployeeAdministration.Controllers
 			return StatusCode(StatusCodes.Status201Created);
 
 		}
+
 
 		[HttpPost("assignProjectTo")]
 		[Authorize(Roles = "Admin")]

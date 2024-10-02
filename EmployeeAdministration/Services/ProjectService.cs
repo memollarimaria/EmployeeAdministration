@@ -1,5 +1,4 @@
-﻿using Abp.Events.Bus;
-using EmployeeAdministration.Events;
+﻿using EmployeeAdministration.EventBus;
 using EmployeeAdministration.Helpers;
 using EmployeeAdministration.Interfaces;
 using EmployeeAdministration.ViewModels.ProjectsViewModels;
@@ -18,12 +17,14 @@ namespace EmployeeAdministration.Services
 		private readonly EmployeeAdministrationContext _context;
 		private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<User> _userManager;
-        public ProjectService(EmployeeAdministrationContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager)
+		private readonly ProjectEvent _projectEvent;
+        public ProjectService(EmployeeAdministrationContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, ProjectEvent projectEvent)
 
         {
 			_context = context;
 			_httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
+            _projectEvent = projectEvent;
         }
 
 		public async System.Threading.Tasks.Task CreateProject(CreateProjectViewModel request)
@@ -49,10 +50,8 @@ namespace EmployeeAdministration.Services
 				}
 			}
 			_context.Projects.Add(project);
-			_context.SaveChanges();
-
-			EventBus.Default.Trigger(new ProjectCreatedEvent { ProjectId = project.ProjectId, ProjectName = project.ProjectName });
-
+            _context.SaveChanges();
+            _projectEvent.LogProjectCreated(project.ProjectName);
 		}
 
 		public async System.Threading.Tasks.Task DeleteProject(Guid projectId)
@@ -73,10 +72,8 @@ namespace EmployeeAdministration.Services
 			}
 
 			_context.Projects.Remove(project);
-			await _context.SaveChangesAsync();
-
-			EventBus.Default.Trigger(new ProjectDeletedEvent { ProjectId = project.ProjectId, ProjectName = project.ProjectName });
-
+            _projectEvent.LogProjectDeleted(project.ProjectName);
+            await _context.SaveChangesAsync();
 		}
 
 
@@ -93,8 +90,6 @@ namespace EmployeeAdministration.Services
 				EndDate = project.EndDate,
 				ProjectStatus = project.ProjectStatus,
 			}).ToList();
-
-
 			return projectViewModels;
 		}
 
@@ -136,10 +131,8 @@ namespace EmployeeAdministration.Services
 			project.ProjectStatus = request.ProjectStatus;
 
 			_context.Projects.Update(project);
-			await _context.SaveChangesAsync();
-
-			EventBus.Default.Trigger(new ProjectUpdatedEvent { ProjectId = project.ProjectId, ProjectName = project.ProjectName });
-
+            await _context.SaveChangesAsync();
+            _projectEvent.LogProjectUpdated(project.ProjectName);
 		}
 
 		public async Task<ICollection<TaskViewModel>> GetProjectTasks(Guid projectId)
@@ -182,8 +175,8 @@ namespace EmployeeAdministration.Services
 			{
 				throw new Exception("No valid users found for assignment.");
 			}
-
-			foreach (var user in users)
+            var assignedUsers = new List<string>();
+            foreach (var user in users)
 			{
 				if (!project.UserProjects.Any(up => up.UserId == user.Id))
 				{
@@ -192,17 +185,14 @@ namespace EmployeeAdministration.Services
 						UserId = user.Id,
 						ProjectId = project.ProjectId
 					});
-				}
+                    assignedUsers.Add(user.Email);
+                }
 			}
 			await _context.SaveChangesAsync();
+            _projectEvent.LogProjectAssigned(assignedUsers);
 
-			EventBus.Default.Trigger(new ProjectAssignedEvent
-			{
-				ProjectId = project.ProjectId,
-				AssignedUserIds = request.UserIds
-			});
-		}
+        }
 
 
-	}
+    }
 }

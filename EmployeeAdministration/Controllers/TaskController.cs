@@ -15,9 +15,9 @@ namespace EmployeeAdministration.Controllers
 	public class TaskController : ControllerBase
 	{
 		private readonly ITask _task;
-		private readonly ILogger<UserController> _logger;
+		private readonly ILogger<TaskController> _logger;
 
-		public TaskController(ITask task, ILogger<UserController> logger)
+		public TaskController(ITask task, ILogger<TaskController> logger)
 		{
 			_task = task;
 			_logger = logger;
@@ -94,8 +94,16 @@ namespace EmployeeAdministration.Controllers
 				return StatusCode(StatusCodes.Status201Created);
 		}
 
+        [HttpDelete("DeleteAssigmentTask")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteAssigmentTask(RemoveAssignmentViewModel task)
+        {
+            await _task.RemoveAssignment(task);
+            return StatusCode(StatusCodes.Status201Created);
+        }
 
-		[HttpPost("assignTaskTo")]
+
+        [HttpPost("assignTaskTo")]
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> AssignTaskTo([FromBody] AssignTaskViewModel model)
 		{

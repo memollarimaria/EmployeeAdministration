@@ -15,5 +15,7 @@ namespace EmployeeAdministration.Interfaces
 		Task UpdateUserTaskStatus(Guid taskId);
 		Task AssignTaskTo(AssignTaskViewModel request);
 		Task UserAssignTaskTo(AssignTaskViewModel request);
-	}
+		Task RemoveAssignment(RemoveAssignmentViewModel request);
+
+    }
 }
