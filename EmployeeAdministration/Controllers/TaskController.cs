@@ -15,9 +15,9 @@ namespace EmployeeAdministration.Controllers
 	public class TaskController : ControllerBase
 	{
 		private readonly ITask _task;
-		private readonly ILogger<TaskController> _logger;
+		private readonly Serilog.ILogger _logger;
 
-		public TaskController(ITask task, ILogger<TaskController> logger)
+		public TaskController(ITask task, Serilog.ILogger logger)
 		{
 			_task = task;
 			_logger = logger;
@@ -40,12 +40,11 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpPost("CreateTask")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> CreateTask([FromBody] CreateTaskViewModel request)
 		{
 			await _task.CreateTask(request);
-			return StatusCode(StatusCodes.Status201Created);
+            _logger.Information("Task created");
+            return StatusCode(StatusCodes.Status201Created);
 		}
 
 		[HttpPost("CreateUserTask")]
@@ -53,25 +52,23 @@ namespace EmployeeAdministration.Controllers
 		public async Task<IActionResult> CreateUserTask([FromBody] CreateTaskViewModel request)
 		{
 			await _task.CreateUserTask(request);
-			return StatusCode(StatusCodes.Status201Created);
+            _logger.Information("Task created");
+            return StatusCode(StatusCodes.Status201Created);
 		}
 
 
 		[HttpPut("UpdateTask")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskViewModel request)
 		{
 			await _task.UpdateTask(request);
-			return StatusCode(StatusCodes.Status201Created);
+            _logger.Information("Task updated");
+            return StatusCode(StatusCodes.Status201Created);
 		}
 
 
 		[HttpPut("UpdateTaskStatus")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> UpdateTaskStatus(Guid taskId)
 		{
 			await _task.UpdateTaskStatus(taskId);

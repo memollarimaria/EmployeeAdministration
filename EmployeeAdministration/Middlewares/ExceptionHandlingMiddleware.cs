@@ -8,10 +8,10 @@ namespace EmployeeAdministration.Middlewares
 	public class ExceptionHandlingMiddleware
 	{
 		private readonly RequestDelegate _next;
-		private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+		private readonly Serilog.ILogger _logger;
 
 
-		public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+		public ExceptionHandlingMiddleware(RequestDelegate next,Serilog.ILogger logger)
 		{
 			_next = next;
 			_logger = logger;
@@ -31,7 +31,7 @@ namespace EmployeeAdministration.Middlewares
 
 		private async Task HandleExceptionAsync(HttpContext context, Exception exception)
 		{
-			_logger.LogError(exception, "An unexpected error occurred.");
+			_logger.Information(exception, "An unexpected error occurred.");
 
 
 			ExceptionResponse response = exception switch

@@ -11,13 +11,15 @@ namespace EmployeeAdministration.Services
         private readonly ConnectionFactory _factory;
         private readonly IConnection _connection;
         private readonly IModel _channel;
+        private readonly Serilog.ILogger _logger;
 
-        public RabbitMQService()
+        public RabbitMQService(Serilog.ILogger logger)
         {
             _factory = new ConnectionFactory() { HostName = "localhost", UserName = "guest", Password = "guest" };
             _connection = _factory.CreateConnection();
             _channel = _connection.CreateModel();
             _channel.ExchangeDeclare(exchange: "user_events", type: ExchangeType.Fanout);
+            _logger = logger;
         }
         public async Task SendMessage(string message)
         {
@@ -26,7 +28,7 @@ namespace EmployeeAdministration.Services
                                   routingKey: "",
                                   basicProperties: null,
                                   body: body);
-            Console.WriteLine($" [x] Sent '{message}'");
+            _logger.Information("Message published: {Message}", message);
         }
 
         public async Task ReceiveLog()
@@ -41,15 +43,13 @@ namespace EmployeeAdministration.Services
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [x] Received '{message}'");
+                _logger.Information("Received: {Message}", message);
             };
 
             _channel.BasicConsume(queue: queueName,
                                   autoAck: true,
                                   consumer: consumer);
 
-            Console.WriteLine(" Press [enter] to exit.");
-            Console.ReadLine();
         }
 
         public void Close()

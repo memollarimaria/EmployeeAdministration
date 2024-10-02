@@ -29,6 +29,11 @@ builder.Services.AddIdentity<User, UserRole>()
  .AddEntityFrameworkStores<EmployeeAdministrationContext>()
  .AddDefaultTokenProviders();
 
+
+builder.Services.AddLogging(loggingBuilder =>
+    loggingBuilder.AddSerilog(dispose: true)
+);
+
 //DI
 builder.Services.AddScoped<IUser, UserService>();
 builder.Services.AddScoped<IProject, ProjectService>();
@@ -36,7 +41,9 @@ builder.Services.AddScoped<ITask, TaskService>();
 builder.Services.AddSingleton<IRabbitMQ, RabbitMQService>();
 builder.Services.AddTransient<UserEvent>();       
 builder.Services.AddTransient<ProjectEvent>();       
-builder.Services.AddTransient<TaskEvent>();       
+builder.Services.AddTransient<TaskEvent>();
+builder.Services.AddHostedService<RabbitMQListener>(); 
+
 
 
 builder.Services.AddHttpContextAccessor();
@@ -48,7 +55,11 @@ Log.Logger = new LoggerConfiguration()
 	.WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day) 
 	.CreateLogger();
 
-builder.Host.UseSerilog();
+builder.Host.UseSerilog((context, loggerConfiguration) =>
+{
+    loggerConfiguration.WriteTo.Console();
+    loggerConfiguration.ReadFrom.Configuration(context.Configuration);
+});
 
 builder.Services.AddLogging();
 

@@ -13,20 +13,19 @@ namespace EmployeeAdministration.Controllers
 	public class UserController : ControllerBase
 	{
 		private readonly IUser _user;
-		private readonly ILogger<UserController> _logger;
+		private readonly Serilog.ILogger _logger;
 
-        public UserController(IUser user, ILogger<UserController> logger)
+        public UserController(IUser user, Serilog.ILogger logger)
         {
 			_user = user;
 			_logger = logger;
 		}
 		[Authorize(Roles = "Admin")]
 		[HttpPost("CreateUser")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateUser(LogInViewModel request)
 		{
 			await _user.CreateUser(request);
+			_logger.Information("User created successfully");
 			return StatusCode(StatusCodes.Status201Created);
 		}
 
@@ -42,7 +41,7 @@ namespace EmployeeAdministration.Controllers
 			{
 				return Ok(response);
 			}
-
+			_logger.Warning("Login unsuccessfull");
 			return StatusCode(StatusCodes.Status400BadRequest);
 		}
 

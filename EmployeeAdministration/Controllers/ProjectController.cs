@@ -12,22 +12,20 @@ namespace EmployeeAdministration.Controllers
 	public class ProjectController : ControllerBase
 	{
 		private readonly IProject _project;
-		private readonly ILogger<ProjectController> _logger;
-		public ProjectController(IProject project, ILogger<ProjectController> logger)
+		private readonly Serilog.ILogger _logger;
+		public ProjectController(IProject project, Serilog.ILogger logger)
 		{
 			_project = project;
 			_logger = logger;
 		}
 
 		[HttpGet("GetAllProjects")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> GetAllProjects()
 		{
 			var projects = await _project.GetAllProject();
 			if (projects == null)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError);
+				_logger.Error("No projects for this user");
 			}
 			return Ok(projects);
 
@@ -53,7 +51,8 @@ namespace EmployeeAdministration.Controllers
 		public async Task<IActionResult> CreateProject([FromBody] CreateProjectViewModel request)
 		{
 			await _project.CreateProject(request);
-			return StatusCode(StatusCodes.Status201Created);
+            _logger.Information("Project created successfully");
+            return StatusCode(StatusCodes.Status201Created);
 
 		}
 
@@ -68,8 +67,6 @@ namespace EmployeeAdministration.Controllers
 
 		[HttpDelete("DeleteProject")]
 		[Authorize(Roles = "Admin")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> DeleteProject(Guid projectId)
 		{
 			await _project.DeleteProject(projectId);
