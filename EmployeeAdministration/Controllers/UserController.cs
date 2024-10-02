@@ -62,17 +62,20 @@ namespace EmployeeAdministration.Controllers
 		}
 
 		[HttpPut("UpdateUserProfilePicture")]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> UpdateUserProfilePicture([FromForm] UpdateUserProfilePictureViewModel request)
 		{
 		     await _user.UpdateUserProfilePicture(request);
 			 return StatusCode(StatusCodes.Status201Created);
 		}
 
-		[HttpDelete]
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> UpdateUser([FromForm] UpdateUserViewModel request)
+        {
+            await _user.UpdateUser(request);
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpDelete]
 		public async Task<IActionResult> DeleteUser(Guid userId)
 		{
 			await _user.DeleteUser(userId);

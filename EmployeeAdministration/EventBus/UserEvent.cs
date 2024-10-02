@@ -25,10 +25,15 @@ namespace EmployeeAdministration.EventBus
 
         public void LogUserProfileUpdated(string userEmail)
         {
-            string message = $"User profile updated: {userEmail}";
+            string message = $"User profile photo updated: {userEmail}";
             _rabbitMQ.SendMessage(message);
-        } 
-        
+        }
+        public void LogUserUpdated(string userEmail)
+        {
+            string message = $"User updated: {userEmail}";
+            _rabbitMQ.SendMessage(message);
+        }
+
         public void LogUserDeleted(string userEmail)
         {
             string message = $"User profile deleted: {userEmail}";

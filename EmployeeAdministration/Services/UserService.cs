@@ -21,12 +21,14 @@ namespace EmployeeAdministration.Services
         private readonly UserEvent _userEvent;
 
         public UserService(
+         IHttpContextAccessor httpContextAccessor,
          EmployeeAdministrationContext context,
          UserManager<User> userManager,
          SignInManager<User> signInManager,
          UserEvent userEvent,
          Jwt jwtService)
         {
+            _httpContextAccessor = httpContextAccessor;
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
@@ -67,8 +69,6 @@ namespace EmployeeAdministration.Services
 			_context.Users.Remove(userToDelete);
             _userEvent.LogUserDeleted(userToDelete.Email);
             _context.SaveChanges();
-
-
 		}
 
         public async Task<ICollection<UserViewModel>> GetAllUsers()
@@ -146,6 +146,25 @@ namespace EmployeeAdministration.Services
                 }
                 _userEvent.LogUserProfileUpdated(user.Email);
             }
+        }
+
+        public async System.Threading.Tasks.Task UpdateUser(UpdateUserViewModel request)
+        {
+            Guid userId = StaticFunc.GetUserId(_httpContextAccessor);
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    throw new Exception("User not found");
+                }
+                user.PhoneNumber = request.PhoneNumber;
+                user.UserName = request.UserName;
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    throw new Exception("Error updating user: " + string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+                _userEvent.LogUserUpdated(user.Email);
         }
 
     }

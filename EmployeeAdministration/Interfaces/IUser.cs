@@ -11,5 +11,7 @@ namespace EmployeeAdministration.Interfaces
 		Task CreateUser(LogInViewModel request);
 		Task DeleteUser(Guid userId);
 		Task UpdateUserProfilePicture(UpdateUserProfilePictureViewModel request);
-	}
+		Task UpdateUser(UpdateUserViewModel request);
+
+    }
 }
