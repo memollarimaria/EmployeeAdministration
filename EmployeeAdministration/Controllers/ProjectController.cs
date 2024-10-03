@@ -73,6 +73,15 @@ namespace EmployeeAdministration.Controllers
 			return StatusCode(StatusCodes.Status201Created);
 
 		}
+		
+		[HttpDelete("DeleteProjectAssigment")]
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> DeleteProjectAssigment(RemoveProjectAssignmentViewModel project)
+		{
+			await _project.DeleteAssign(project);
+			return StatusCode(StatusCodes.Status201Created);
+
+		}
 
 
 		[HttpPost("assignProjectTo")]

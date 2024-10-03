@@ -193,6 +193,27 @@ namespace EmployeeAdministration.Services
 
         }
 
+        public async System.Threading.Tasks.Task DeleteAssign(RemoveProjectAssignmentViewModel request)
+        {
+            var project = await _context.Projects
+			.Include(t => t.UserProjects)
+			.FirstOrDefaultAsync(t => t.ProjectId == request.ProjectId);
 
+            if (project == null)
+            {
+                throw new Exception("Project not found.");
+            }
+
+            var userProject = project.UserProjects.FirstOrDefault(ut => ut.UserId == request.UserId);
+
+            if (userProject == null)
+            {
+                throw new Exception($"User with ID {request.UserId} is not assigned to this task.");
+            }
+
+            project.UserProjects.Remove(userProject);
+            _projectEvent.LogProjectAssigmentDeleted(project.ProjectName);
+            await _context.SaveChangesAsync();
+        }
     }
 }

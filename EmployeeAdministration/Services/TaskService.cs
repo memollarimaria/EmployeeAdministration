@@ -94,7 +94,9 @@ namespace EmployeeAdministration.Services
 			};
 			foreach (var userTask in request.UserTasks)
 			{
-				if (!task.UserTasks.Any(up => up.UserId == userTask.userId))
+				bool isUserInProject = project.UserProjects.Any(up => up.UserId == userTask.userId);
+
+				if (isUserInProject && !task.UserTasks.Any(ut => ut.UserId == userTask.userId))
 				{
 					task.UserTasks.Add(new UserTask
 					{
@@ -102,11 +104,14 @@ namespace EmployeeAdministration.Services
 						TaskId = task.ProjectId,
 					});
 				}
+				else if (!isUserInProject)
+				{
+					throw new Exception($"User with ID {userTask.userId} is not part of the project.");
+				}
+
+				_context.Tasks.Add(task);
+				await _context.SaveChangesAsync();
 			}
-
-			_context.Tasks.Add(task);
-			await _context.SaveChangesAsync();
-
 
 		}
 

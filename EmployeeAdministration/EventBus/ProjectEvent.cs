@@ -27,6 +27,12 @@ namespace EmployeeAdministration.EventBus
             string message = $"Project updated: {projectName}";
             _rabbitMQ.SendMessage(message);
         }
+        
+        public void LogProjectAssigmentDeleted(string projectName)
+        {
+            string message = $"Project assigment updated: {projectName}";
+            _rabbitMQ.SendMessage(message);
+        }
 
         public void LogProjectDeleted(string projectName)
         {
